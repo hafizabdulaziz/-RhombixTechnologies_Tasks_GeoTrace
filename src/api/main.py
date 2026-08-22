@@ -18,8 +18,16 @@ from src.core.utils import resolve_ip
 from src.providers.factory import ProviderFactory
 
 # Initialize Logging
+class RequestIDFilter(logging.Filter):
+    def filter(self, record):
+        if not hasattr(record, 'request_id'):
+            record.request_id = 'SYSTEM'
+        return True
+
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - [%(request_id)s] %(message)s")
 logger = logging.getLogger("GeoTraceAPI")
+logger.addFilter(RequestIDFilter())
+
 
 # Initialize Database
 try:
