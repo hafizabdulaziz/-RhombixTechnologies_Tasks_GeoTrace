@@ -65,10 +65,10 @@
 
     <!-- Main Content Grid -->
     <main class="flex-grow max-w-7xl w-full mx-auto p-4 flex flex-col min-h-0 overflow-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-grow overflow-hidden">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-screen p-4">
 
         <!-- Left Column: Search & Metrics (4/12) -->
-        <section class="lg:col-span-4 flex flex-col gap-4 overflow-hidden">
+        <div class="lg:col-span-4 flex flex-col justify-between space-y-4">
             <!-- Search Panel -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl shrink-0">
                 <h2 class="text-sm font-bold text-white mb-2 flex items-center gap-1.5">
@@ -86,26 +86,42 @@
 
             <!-- Metrics Grid -->
             <div class="grid grid-cols-2 gap-2 shrink-0">
-                <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">IP</div><div id="metric-ip" class="text-xs font-bold text-white truncate">-</div></div>
-                <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">Location</div><div id="metric-country-name" class="text-xs font-bold text-white truncate">-</div></div>
-                <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">City</div><div id="metric-city" class="text-xs font-bold text-white truncate">-</div></div>
-                <div class="bg-slate-900 border border-slate-800 p-3 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">Provider</div><div id="metric-provider" class="text-xs font-bold text-white truncate">-</div></div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">IP</div><div id="metric-ip" class="text-xs font-bold text-white truncate">-</div></div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">Country</div><div class="flex items-center gap-1"><span id="metric-country-flag">🌍</span><span id="metric-country-name" class="text-xs font-bold text-white truncate">Country Name</span></div></div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">City</div><div id="metric-city" class="text-xs font-bold text-white truncate">-</div></div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">Region</div><div id="metric-region" class="text-xs font-bold text-white truncate">State/Region</div></div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">Coords</div><div id="metric-coords" class="text-xs font-bold text-white truncate">-</div></div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl"><div class="text-[9px] text-slate-500 font-bold uppercase">Latency</div><div id="metric-latency" class="text-xs font-bold text-white truncate">-</div></div>
+                <div class="bg-slate-900 border border-slate-800 p-2.5 rounded-xl col-span-2"><div class="text-[9px] text-slate-500 font-bold uppercase">Provider</div><div id="metric-provider" class="text-xs font-bold text-white truncate">Provider: -</div></div>
+            </div>
+
+            <!-- Loading Spinner (hidden by default) -->
+            <div id="spinner" class="hidden text-center py-2 shrink-0">
+                <svg class="animate-spin h-5 w-5 text-rose-500 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+            </div>
+            
+            <!-- Error Banner -->
+            <div id="error-banner" class="hidden mt-2 bg-rose-950/40 border border-rose-900/60 rounded-lg p-2 text-[10px] text-rose-300">
+                <span id="error-message"></span>
             </div>
 
             <!-- History Table -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-xl flex-grow overflow-hidden flex flex-col min-h-0">
-                <h2 class="text-xs font-bold text-white mb-2">History</h2>
-                <div class="overflow-y-auto flex-grow rounded-lg border border-slate-800 bg-slate-950/40">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 shadow-xl flex-grow flex flex-col overflow-hidden pb-2">
+                <h2 class="text-xs font-bold text-white mb-2 shrink-0">History</h2>
+                <div id="history-list" class="max-h-[150px] overflow-y-auto space-y-2 pr-1 rounded-lg border border-slate-800 bg-slate-950/40">
                     <table class="w-full text-left text-[10px]">
                         <tbody id="history-tbody"></tbody>
                     </table>
                 </div>
             </div>
-        </section>
+        </div>
 
         <!-- Right Column: Interactive Live Map (8/12) -->
-        <section class="lg:col-span-8 flex flex-col overflow-hidden">
-            <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-xl flex-grow overflow-hidden flex flex-col min-h-0">
+        <div class="lg:col-span-8 h-[600px] lg:h-auto">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-xl flex-grow overflow-hidden flex flex-col min-h-0 h-full">
                 <div class="bg-slate-950 px-4 py-2 flex items-center justify-between border-b border-slate-800 shrink-0">
                     <h2 class="text-xs font-bold text-white">Live Map</h2>
                     <button onclick="resetMap()" class="text-[9px] bg-slate-800 text-slate-300 px-2 py-1 rounded">Recenter</button>
@@ -323,17 +339,20 @@
                 input.value = '';
                 await loadHistory();
                 await checkAPIHealth();
-
-            } catch (err) {
-                console.error("Lookup error:", err);
-                resetMetricsUI(); // Ensure UI is cleared on error
-                errorMessage.textContent = err.message || "Could not resolve or lookup target geolocation details.";
-                errorBanner.classList.remove('hidden');
-            } finally {
-                // Clear loading state
-                searchBtn.disabled = false;
-                spinner.classList.add('hidden');
-            }
+} catch (err) {
+    console.error("Lookup error:", err);
+    resetMetricsUI();
+    const errorBanner = document.getElementById('error-banner');
+    if (errorBanner) {
+        errorBanner.textContent = err.message || "Invalid or Reserved IP Address";
+        errorBanner.className = "w-full p-2.5 mt-2 text-xs font-semibold text-red-200 bg-red-950/80 border border-red-500/50 rounded-lg block shrink-0";
+        errorBanner.classList.remove('hidden');
+    }
+    document.getElementById('ip-input').value = '';
+} finally {
+    searchBtn.disabled = false;
+    spinner.classList.add('hidden');
+}
         }
 
         // Plot node on Leaflet Map

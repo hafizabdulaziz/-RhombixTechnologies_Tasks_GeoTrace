@@ -91,6 +91,8 @@ class HistoryItem(BaseModel):
     ip: str
     city: str
     country: str
+    latitude: float | None = None
+    longitude: float | None = None
     timestamp: str
 
 class Analytics(BaseModel):
@@ -193,6 +195,7 @@ async def get_lookup_history(request: Request) -> HistoryResponse:
         formatted_history = [
             HistoryItem(
                 id=r.id, ip=r.ip, city=r.city or "Unknown", country=r.country or "Unknown",
+                latitude=r.latitude, longitude=r.longitude,
                 timestamp=r.timestamp.strftime("%Y-%m-%d %H:%M:%S")
             )
             for r in records
