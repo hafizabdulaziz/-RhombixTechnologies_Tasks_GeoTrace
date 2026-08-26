@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GeoTrace | IP & Network Intelligence</title>
-    <!-- Tailwind CSS CDN -->
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+    <!-- Tailwind CSS (Cleaned to minimize warnings) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -19,9 +21,8 @@
             }
         }
     </script>
-    <!-- Leaflet CSS -->
+    <!-- Leaflet CSS & JS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -66,10 +67,11 @@
         <section class="col-span-3 flex flex-col h-full overflow-hidden space-y-3">
             <!-- Search Panel -->
             <div class="bg-slate-900 border border-slate-800 rounded-lg p-3 shadow-md shrink-0">
-                <form id="lookup-form" class="flex gap-2" onsubmit="handleLookup(event)">
+                <form id="lookup-form" class="flex flex-col gap-2" onsubmit="handleLookup(event)">
                     <input type="text" id="ip-input" placeholder="IP / Domain" required class="flex-grow bg-slate-950 border border-slate-800 focus:border-rose-500 text-white rounded-md py-1.5 px-3 text-xs outline-none">
                     <button type="submit" id="search-btn" class="bg-indigo-600 text-white font-bold px-4 rounded-md text-xs transition-all hover:bg-indigo-700">Analyze</button>
                 </form>
+                <div id="error-banner" class="hidden mt-2 p-2 rounded-md bg-red-950/50 border border-red-500/50 text-red-200 text-[10px] font-medium text-center"></div>
             </div>
 
             <!-- Metrics Grid -->
@@ -83,8 +85,8 @@
             <!-- History Table -->
             <div class="bg-slate-900 border border-slate-800 rounded-lg p-3 shadow-md flex-grow flex flex-col overflow-hidden">
                 <h2 class="text-xs font-bold text-white mb-2 shrink-0">Recent Lookups</h2>
-                <div id="history-list" class="flex-grow overflow-y-auto space-y-1 pr-1">
-                    <table class="w-full text-left text-[10px]">
+                <div id="history-list" class="flex-grow overflow-y-auto overflow-x-hidden min-w-0 space-y-1 pr-1">
+                    <table class="w-full text-left text-[10px] table-fixed">
                         <tbody id="history-tbody"></tbody>
                     </table>
                 </div>
@@ -105,9 +107,225 @@
         GeoTrace • IP & Network Intelligence
     </footer>
 
-    <!-- Frontend logic scripts (omitted for brevity in replacement, but kept in actual file) -->
+    <!-- Frontend logic scripts -->
     <script>
-        // ... (Keep existing script logic)
+        let map;
+        let currentMarker = null;
+        let currentPulse = null;
+
+        // On DOM Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeMap();
+            loadHistory();
+            checkAPIHealth();
+        });
+
+        // Initialize Map
+        function initializeMap() {
+            // Instantiate the map pointing to a default global view (lat=20, lon=0, zoom=2)
+            map = L.map('map', {
+                zoomControl: true,
+                attributionControl: true
+            }).setView([20, 0], 2);
+
+            // Add the classic custom dark-style OpenStreetMap tiles (or default street map)
+            // Leaflet allows changing tiles easily. OpenStreetMap is robust.
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" class="hover:underline">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+
+        // Reset map to initial global view
+        function resetMap() {
+            map.flyTo([20, 0], 2, {
+                animate: true,
+                duration: 1.2
+            });
+        }
+
+        // Check Health Endpoint
+        async function checkAPIHealth() {
+            try {
+                const res = await fetch('/api/v1/health');
+                const data = await res.json();
+                
+                // Simplified health representation
+                if (res.ok && data.status === 'healthy') {
+                    // Operational
+                }
+            } catch (err) {
+                console.error("Health Check failed: ", err);
+            }
+        }
+
+        // Fetch & Populate History
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/v1/history');
+                if (!response.ok) throw new Error("Could not retrieve history");
+                
+                const result = await response.json();
+                const history = result.history;
+                
+                const tbody = document.getElementById('history-tbody');
+                tbody.innerHTML = ''; // Clear previous
+
+                if (history.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="3" class="p-8 text-center text-slate-600 font-medium">No lookups recorded yet.</td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                history.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = "border-b border-slate-800/50 hover:bg-slate-900/40 transition-colors";
+                    
+                    row.innerHTML = `
+                        <td class="p-3 font-semibold text-slate-300 truncate max-w-[140px]" title="${item.ip}">
+                            ${item.ip}
+                        </td>
+                        <td class="p-3 text-slate-400 truncate max-w-[180px]" title="${item.city}, ${item.country}">
+                            ${item.city}, ${item.country}
+                        </td>
+                        <td class="p-3 text-center">
+                            <button 
+                                onclick="plotHistoricalNode(${item.latitude}, ${item.longitude}, '${item.city}', '${item.country}', '${item.ip}', 'ip-api')"
+                                class="text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold px-2 py-1 rounded-md border border-indigo-500/20"
+                            >
+                                Plot
+                            </button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (err) {
+                console.error("Error loading history: ", err);
+            }
+        }
+
+        // Helper: Clear UI state
+        function resetMetricsUI() {
+            document.getElementById('metric-ip').textContent = '-';
+            document.getElementById('metric-country-name').textContent = 'City, Country';
+            document.getElementById('metric-country-flag').textContent = '🌍';
+            document.getElementById('metric-coords').textContent = '-';
+            document.getElementById('metric-provider').textContent = '-';
+            
+            // Remove previous active marker/pulses if they exist
+            if (currentMarker) map.removeLayer(currentMarker);
+            if (currentPulse) map.removeLayer(currentPulse);
+            currentMarker = null;
+            currentPulse = null;
+        }
+
+        // Form Submit Handler
+        async function handleLookup(e) {
+            e.preventDefault();
+
+            const input = document.getElementById('ip-input');
+            const target = input.value.trim();
+            if (!target) return;
+
+            const searchBtn = document.getElementById('search-btn');
+
+            // Reset UI and Set loading state
+            resetMetricsUI();
+            searchBtn.disabled = true;
+            searchBtn.textContent = "Analyzing...";
+
+            try {
+                const response = await fetch('/api/v1/lookup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ip_or_domain: target })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.detail || "Lookup request failed.");
+                }
+
+                // Populate metric cards
+                const geo = result.data;
+                document.getElementById('metric-ip').textContent = geo.ip;
+                document.getElementById('metric-country-name').textContent = `${geo.city || 'Unknown'}, ${geo.country || 'Unknown'}`;
+                document.getElementById('metric-country-flag').textContent = getFlagEmoji(geo.country);
+                document.getElementById('metric-coords').textContent = `${geo.latitude?.toFixed(4) || '-'}, ${geo.longitude?.toFixed(4) || '-'}`;
+                document.getElementById('metric-provider').textContent = (geo.provider || 'Unknown').toUpperCase();
+
+                // Plot on interactive map
+                if (geo.latitude !== null && geo.longitude !== null) {
+                    plotOnMap(geo.latitude, geo.longitude, geo.city, geo.country, geo.ip, geo.provider);
+                }
+
+                input.value = '';
+                await loadHistory();
+            } catch (err) {
+                console.error("Lookup error:", err);
+                const errorBanner = document.getElementById('error-banner');
+                errorBanner.textContent = err.message;
+                errorBanner.classList.remove('hidden');
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    errorBanner.classList.add('hidden');
+                }, 5000);
+            } finally {
+                searchBtn.disabled = false;
+                searchBtn.textContent = "Analyze";
+            }
+        }
+
+        // Plot node on Leaflet Map
+        function plotOnMap(lat, lon, city, country, ip, provider) {
+            if (currentMarker) map.removeLayer(currentMarker);
+            if (currentPulse) map.removeLayer(currentPulse);
+
+            currentPulse = L.circle([lat, lon], {
+                color: '#4f46e5',
+                fillColor: '#6366f1',
+                fillOpacity: 0.1,
+                weight: 1,
+                radius: 20000 
+            }).addTo(map);
+
+            currentMarker = L.circleMarker([lat, lon], {
+                color: '#ffffff',
+                fillColor: '#f43f5e',
+                fillOpacity: 1,
+                weight: 2,
+                radius: 6
+            }).addTo(map);
+
+            currentMarker.bindPopup(`<b>${city}, ${country}</b><br>IP: ${ip}`).openPopup();
+            map.flyTo([lat, lon], 6, { animate: true, duration: 0.8 });
+        }
+
+        // Plot historical record
+        function plotHistoricalNode(lat, lon, city, country, ip, provider) {
+            document.getElementById('metric-ip').textContent = ip;
+            document.getElementById('metric-country-name').textContent = `${city}, ${country}`;
+            document.getElementById('metric-country-flag').textContent = getFlagEmoji(country);
+            document.getElementById('metric-coords').textContent = `${lat.toFixed(4)}, ${lon.toFixed(4)}`;
+            document.getElementById('metric-provider').textContent = provider.toUpperCase();
+
+            plotOnMap(lat, lon, city, country, ip, provider);
+        }
+
+        // Helper: Country to Emoji Flag
+        function getFlagEmoji(countryName) {
+            const countryFlags = {
+                "United States": "🇺🇸", "US": "🇺🇸", "United Kingdom": "🇬🇧", "UK": "🇬🇧",
+                "Germany": "🇩🇪", "France": "🇫🇷", "Canada": "🇨🇦", "Pakistan": "🇵🇰",
+                "India": "🇮🇳", "China": "🇨🇳", "Japan": "🇯🇵", "Australia": "🇦🇺"
+            };
+            return countryFlags[countryName] || "📍";
+        }
     </script>
 </body>
 </html>
