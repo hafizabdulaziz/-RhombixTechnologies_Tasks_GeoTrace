@@ -1,25 +1,28 @@
-# GeoTrace
+# GeoTrace — Intelligent Geolocation Intelligence Platform
 
-GeoTrace is an IP geolocation tracking tool built with FastAPI and Leaflet.js, featuring provider failover, history tracking, and structured logging.
+A production-oriented geolocation platform for IP and domain intelligence, provider failover, historical lookup analysis, interactive mapping, and reliable API-driven workflows.
 
 ## Features
-- **Accurate Geolocation:** Lookup IP addresses and domains using reliable providers with failover support.
-- **Interactive Mapping:** Geospatial visualization using Leaflet.js.
-- **Robust Analytics:** Track lookup history with success metrics.
-- **Production Ready:** Dockerized, CI/CD pipeline enabled, structured logging, and robust error handling.
+- **Intelligent Lookup:** Geolocation intelligence for IPs and domains with multi-provider failover.
+- **Compact Dashboard:** Production-oriented, responsive UI designed for actionable insights.
+- **Robustness:** Resilient service layer with structured error handling (502 Gateway monitoring).
+- **Historical Insights:** Integrated history tracking and lookup analytics.
+- **Visual Intelligence:** Interactive Leaflet-based live mapping.
 
 ## Tech Stack
 - **Backend:** FastAPI, SQLAlchemy, SQLite
 - **Frontend:** HTML5, Tailwind CSS, Leaflet.js
-- **Infrastructure:** Docker, GitHub Actions (CI)
+- **Infrastructure:** Docker, CI/CD Pipeline
 
 ## Getting Started
 ### Using Docker (Recommended)
 ```bash
 docker-compose up --build
 ```
-Open `http://localhost:8000`
+Access the dashboard at `http://localhost:8000`
 
-### Locally
-1. Install dependencies: `pip install -r requirements.txt`
-2. Run server: `python -m uvicorn src.api.main:app --reload`
+### Local Development
+1. Set up a virtual environment: `python -m venv .venv`
+2. Activate: `source .venv/bin/activate` (or `.\.venv\Scripts\activate` on Windows)
+3. Install: `pip install -r requirements.txt`
+4. Execute: `python -m uvicorn src.api.main:app --reload`
