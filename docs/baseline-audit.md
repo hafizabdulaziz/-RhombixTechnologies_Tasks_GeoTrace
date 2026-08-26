@@ -17,9 +17,9 @@ GeoTrace (formerly GeoEngine Pro) is a Python-based geolocation platform using F
 - `lookup_history`: Stores lookup details (id, ip, city, region, country, latitude, longitude, provider, timestamp).
 
 ## 4. Current Test State
-- `tests/test_system.py`: 2 tests (System/Unit level).
-- `tests/test_api.py`: 5 tests (API level).
-- Status: All tests passing.
+- `tests/test_system.py`: 2 tests.
+- `tests/test_api.py`: 5 tests.
+- Status: All tests passing (8 passed, 1 warning).
 
 ## 5. Known Limitations
 - Hardcoded provider list (IpApiProvider only).
