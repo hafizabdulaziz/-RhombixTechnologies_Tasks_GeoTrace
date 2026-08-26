@@ -14,6 +14,7 @@ from src.database.models import init_db
 from src.services.geolocation_service import GeolocationService
 from src.services.history import HistoryService
 from src.services.map_service import get_map_html
+from src.services.failover import ProviderException
 from src.core.utils import resolve_ip
 from src.providers.factory import ProviderFactory
 
@@ -151,11 +152,17 @@ async def lookup_ip_or_domain(request: Request, body: LookupRequest) -> LookupRe
         
         HistoryService.save_lookup(data)
         logger.info(f"Lookup successful for {resolved_ip}.", extra={"request_id": request_id})
+    except ProviderException as e:
+        logger.error(f"Geolocation service failed: {e}", extra={"request_id": request_id})
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Geolocation services are temporarily unavailable."
+        )
     except Exception as e:
-        logger.error(f"Geolocation lookup failed for '{resolved_ip}': {e}", extra={"request_id": request_id})
+        logger.error(f"Unexpected error during lookup for '{resolved_ip}': {e}", extra={"request_id": request_id})
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to fetch geolocation data. Please try again later."
+            detail="An unexpected error occurred."
         )
 
     map_html = ""
