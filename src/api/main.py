@@ -227,3 +227,15 @@ async def health_check(request: Request) -> Dict[str, Any]:
         "database": "connected",
         "request_id": request.state.request_id
     }
+
+@app.delete("/api/v1/history/delete/{id}")
+async def delete_lookup(id: int) -> Dict[str, str]:
+    """Deletes a lookup record by ID."""
+    try:
+        HistoryService.delete_record(id)
+        return {"message": "Record deleted successfully"}
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail="Internal server error")
+

@@ -191,12 +191,18 @@
                         <td class="p-3 text-slate-400 truncate max-w-[180px]" title="${item.city}, ${item.country}">
                             ${item.city}, ${item.country}
                         </td>
-                        <td class="p-3 text-center">
+                        <td class="p-3 text-center flex gap-1 justify-center">
                             <button 
                                 onclick="plotHistoricalNode(${item.latitude}, ${item.longitude}, '${item.city}', '${item.country}', '${item.ip}', 'ip-api')"
                                 class="text-xs bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-400 font-bold px-2 py-1 rounded-md border border-indigo-500/20"
                             >
                                 Plot
+                            </button>
+                            <button 
+                                onclick="deleteRecord(${item.id})"
+                                class="text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold px-2 py-1 rounded-md border border-red-500/20"
+                            >
+                                Delete
                             </button>
                         </td>
                     `;
@@ -204,6 +210,17 @@
                 });
             } catch (err) {
                 console.error("Error loading history: ", err);
+            }
+        }
+
+        async function deleteRecord(id) {
+            if (!confirm("Delete this lookup?")) return;
+            try {
+                const response = await fetch(`/api/v1/history/delete/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error("Delete failed");
+                await loadHistory();
+            } catch (err) {
+                alert(err.message);
             }
         }
 

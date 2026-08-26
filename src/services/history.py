@@ -44,3 +44,12 @@ class HistoryService:
                 "total_lookups": total or 0,
                 "success_rate": 100.0 if total and total > 0 else 0.0
             }
+
+    @staticmethod
+    def delete_record(record_id: int):
+        with HistoryService._get_session() as session:
+            record = session.query(LookupHistory).filter(LookupHistory.id == record_id).first()
+            if record:
+                session.delete(record)
+            else:
+                raise ValueError("Record not found")
