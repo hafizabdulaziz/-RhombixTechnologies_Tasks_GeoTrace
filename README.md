@@ -1,4 +1,4 @@
-# GeoTrace — Intelligent Geolocation Intelligence Platform
+# GeoTrace — IP Geolocation & Network Intelligence Platform
 
 GeoTrace is a production-oriented Python application for **IP and domain geolocation intelligence**.
 
