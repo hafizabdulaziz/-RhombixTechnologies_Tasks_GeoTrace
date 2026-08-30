@@ -5,7 +5,8 @@ import datetime
 
 # Database URL
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-DATABASE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'geoengine.db')}"
+DEFAULT_SQLITE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'geoengine.db')}"
+DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_SQLITE_URL)
 
 Base = declarative_base()
 
@@ -25,15 +26,28 @@ class LookupHistory(Base):
         Index('idx_ip_timestamp', 'ip', 'timestamp'),
     )
 
-# Use absolute path and optimized SQLite settings
-engine = create_engine(
-    DATABASE_URL, 
-    connect_args={"check_same_thread": False},
-    pool_pre_ping=True # Helps with reconnection
-)
+# Dynamic Engine
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(
+        DATABASE_URL, 
+        connect_args={"check_same_thread": False},
+        pool_pre_ping=True
+    )
+else:
+    # PostgreSQL
+    engine = create_engine(
+        DATABASE_URL, 
+        pool_pre_ping=True
+    )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
-    """Create tables if they don't exist."""
-    Base.metadata.create_all(engine)
-
+    """Create tables if they don't exist (only for SQLite)."""
+    # Skip for PostgreSQL
+    if DATABASE_URL.startswith("postgresql"):
+        return
+        
+    if DATABASE_URL.startswith("sqlite"):
+        Base.metadata.create_all(engine)
+    # PostgreSQL migrations are managed via deployment-time CLI commands.
