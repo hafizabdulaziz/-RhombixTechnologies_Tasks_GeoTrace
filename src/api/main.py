@@ -3,6 +3,7 @@ import time
 import logging
 import uuid
 from typing import Dict, Any, List
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, HTTPException, status
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
@@ -30,20 +31,23 @@ logger = logging.getLogger("GeoTraceAPI")
 logger.addFilter(RequestIDFilter())
 
 
-# Initialize Database
-try:
-    logger.info("Initializing database...", extra={"request_id": "INIT"})
-    init_db()
-    logger.info("Database initialized successfully.", extra={"request_id": "INIT"})
-except Exception as e:
-    logger.critical(f"Database initialization failed: {e}", extra={"request_id": "INIT"})
-    raise e
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Handles application startup and shutdown events."""
+    try:
+        logger.info("Initializing database...", extra={"request_id": "INIT"})
+        init_db()
+        logger.info("Database initialized successfully.", extra={"request_id": "INIT"})
+    except Exception as e:
+        logger.error(f"Database initialization failed: {e}", extra={"request_id": "INIT"})
+    yield
 
 # Setup FastAPI App
 app = FastAPI(
     title="GeoTrace API",
     description="Enterprise IP & Network Intelligence Platform API",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS for future frontend integration
