@@ -34,12 +34,9 @@ if DATABASE_URL.startswith("sqlite"):
         pool_pre_ping=True
     )
 else:
-    # PostgreSQL
-    # Ensure usage of psycopg (v3) driver for both postgres:// and postgresql://
-    if DATABASE_URL.startswith("postgresql://"):
-        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1)
-    elif DATABASE_URL.startswith("postgres://"):
-        DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg://", 1)
+    # PostgreSQL: Force usage of psycopg (v3) driver
+    if DATABASE_URL.startswith(("postgresql://", "postgres://")):
+        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1).replace("postgres://", "postgresql+psycopg://", 1)
         
     engine = create_engine(
         DATABASE_URL, 
@@ -50,10 +47,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
     """Create tables if they don't exist (only for SQLite)."""
-    # Skip for PostgreSQL
-    if DATABASE_URL.startswith("postgresql"):
-        return
-        
+    # SQLite ke liye database file generate karni hai
     if DATABASE_URL.startswith("sqlite"):
         Base.metadata.create_all(engine)
     # PostgreSQL migrations are managed via deployment-time CLI commands.
