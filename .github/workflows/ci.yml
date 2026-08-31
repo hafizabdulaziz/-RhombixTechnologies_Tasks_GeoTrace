@@ -18,7 +18,7 @@ jobs:
 
   migrate:
     needs: test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.DATABASE_URL != ''
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
