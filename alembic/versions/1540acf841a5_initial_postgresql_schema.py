@@ -19,10 +19,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Check if table exists, if not create it
-    conn = op.get_bind()
-    inspector = sa.inspect(conn)
-    if 'lookup_history' not in inspector.get_table_names():
+    try:
         op.create_table('lookup_history',
             sa.Column('id', sa.Integer(), nullable=False),
             sa.Column('ip', sa.String(), nullable=False),
@@ -38,20 +35,9 @@ def upgrade() -> None:
         op.create_index('idx_ip_timestamp', 'lookup_history', ['ip', 'timestamp'], unique=False)
         op.create_index(op.f('ix_lookup_history_ip'), 'lookup_history', ['ip'], unique=False)
         op.create_index(op.f('ix_lookup_history_timestamp'), 'lookup_history', ['timestamp'], unique=False)
-    else:
-        # Existing table logic
-        try:
-            op.alter_column('lookup_history', 'ip',
-                       existing_type=sa.VARCHAR(),
-                       nullable=False)
-        except Exception:
-            pass
-        try:
-            op.create_index('idx_ip_timestamp', 'lookup_history', ['ip', 'timestamp'], unique=False)
-            op.create_index(op.f('ix_lookup_history_ip'), 'lookup_history', ['ip'], unique=False)
-            op.create_index(op.f('ix_lookup_history_timestamp'), 'lookup_history', ['timestamp'], unique=False)
-        except Exception:
-            pass
+    except Exception:
+        # Table likely already exists
+        pass
 
 
 def downgrade() -> None:

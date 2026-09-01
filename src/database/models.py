@@ -34,6 +34,7 @@ def get_engine(url=None):
             pool_pre_ping=True
         )
     else:
+        # PostgreSQL: Force usage of psycopg2 driver
         if db_url.startswith(("postgresql://", "postgres://")):
             db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1).replace("postgres://", "postgresql+psycopg2://", 1)
         return create_engine(db_url, pool_pre_ping=True)
