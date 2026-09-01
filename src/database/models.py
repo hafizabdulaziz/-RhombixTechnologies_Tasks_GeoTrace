@@ -6,7 +6,6 @@ import datetime
 # Database URL
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 DEFAULT_SQLITE_URL = f"sqlite:///{os.path.join(BASE_DIR, 'geoengine.db')}"
-DATABASE_URL = os.getenv("DATABASE_URL", DEFAULT_SQLITE_URL)
 
 Base = declarative_base()
 
@@ -26,28 +25,26 @@ class LookupHistory(Base):
         Index('idx_ip_timestamp', 'ip', 'timestamp'),
     )
 
-# Dynamic Engine
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(
-        DATABASE_URL, 
-        connect_args={"check_same_thread": False},
-        pool_pre_ping=True
-    )
-else:
-    # PostgreSQL: Force usage of psycopg (v3) driver
-    if DATABASE_URL.startswith(("postgresql://", "postgres://")):
-        DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg://", 1).replace("postgres://", "postgresql+psycopg://", 1)
-        
-    engine = create_engine(
-        DATABASE_URL, 
-        pool_pre_ping=True
-    )
+def get_engine(url=None):
+    db_url = url or os.getenv("DATABASE_URL", DEFAULT_SQLITE_URL)
+    if db_url.startswith("sqlite"):
+        return create_engine(
+            db_url, 
+            connect_args={"check_same_thread": False},
+            pool_pre_ping=True
+        )
+    else:
+        if db_url.startswith(("postgresql://", "postgres://")):
+            db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1).replace("postgres://", "postgresql+psycopg2://", 1)
+        return create_engine(db_url, pool_pre_ping=True)
 
+# Default engine and session factory
+engine = get_engine()
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-def init_db():
+def init_db(engine_instance=None):
     """Create tables if they don't exist (only for SQLite)."""
-    # SQLite ke liye database file generate karni hai
-    if DATABASE_URL.startswith("sqlite"):
-        Base.metadata.create_all(engine)
-    # PostgreSQL migrations are managed via deployment-time CLI commands.
+    target_engine = engine_instance or engine
+    db_url = os.getenv("DATABASE_URL", DEFAULT_SQLITE_URL)
+    if db_url.startswith("sqlite"):
+        Base.metadata.create_all(target_engine)
