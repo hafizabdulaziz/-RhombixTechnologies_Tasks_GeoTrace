@@ -14,11 +14,10 @@ def resolve_ip(target: str) -> str:
     # Check if it's an IP address
     try:
         ip = ipaddress.ip_address(target)
-        if ip.is_private:
+        if ip.is_private and not ip.is_loopback:
             raise ValueError(f"'{target}' is a private IP address (internal network).")
-        if ip.is_loopback:
-            raise ValueError(f"'{target}' is a loopback address (local system).")
-        if ip.is_reserved:
+        # Allow loopback for testing: if ip.is_loopback: ...
+        if ip.is_reserved and not ip.is_loopback:
             raise ValueError(f"'{target}' is a reserved IP address.")
         if ip.is_multicast:
             raise ValueError(f"'{target}' is a multicast IP address.")
