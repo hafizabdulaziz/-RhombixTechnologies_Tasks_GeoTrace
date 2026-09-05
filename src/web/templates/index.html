@@ -37,7 +37,7 @@
         .leaflet-container { background-color: #1e293b !important; }
     </style>
 </head>
-<body class="text-slate-100 h-screen flex flex-col overflow-hidden">
+<body class="text-slate-100 min-h-screen flex flex-col bg-slate-900">
 
     <!-- Header Navigation: COMPACT -->
     <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-4 py-2 shrink-0">
@@ -60,16 +60,15 @@
     </header>
 
     <!-- Main Content Grid -->
-    <main class="flex-grow max-w-[1600px] w-full mx-auto p-3 flex min-h-0 overflow-hidden">
-        <div class="grid grid-cols-12 gap-3 w-full h-full">
-
-        <!-- Left Column: Search & Metrics (3/12) -->
-        <section class="col-span-3 flex flex-col h-full overflow-hidden space-y-3">
+    <main class="flex-grow max-w-[1600px] w-full mx-auto p-2 md:p-3 flex flex-col md:flex-row gap-3 min-h-0 overflow-hidden">
+        
+        <!-- Left Column: Search & Metrics -->
+        <section class="flex-none w-full md:w-3/12 flex flex-col gap-3 h-auto md:h-full overflow-y-auto">
             <!-- Search Panel -->
             <div class="bg-slate-900 border border-slate-800 rounded-lg p-3 shadow-md shrink-0">
                 <form id="lookup-form" class="flex flex-col gap-2" onsubmit="handleLookup(event)">
-                    <input type="text" id="ip-input" placeholder="IP / Domain" required class="flex-grow bg-slate-950 border border-slate-800 focus:border-rose-500 text-white rounded-md py-1.5 px-3 text-xs outline-none">
-                    <button type="submit" id="search-btn" class="bg-indigo-600 text-white font-bold px-4 rounded-md text-xs transition-all hover:bg-indigo-700">Analyze</button>
+                    <input type="text" id="ip-input" placeholder="IP / Domain" required class="w-full bg-slate-950 border border-slate-800 focus:border-rose-500 text-white rounded-md py-2 px-3 text-xs outline-none">
+                    <button type="submit" id="search-btn" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-md text-xs transition-all hover:bg-indigo-700">Analyze</button>
                 </form>
                 <div id="error-banner" class="hidden mt-2 p-2 rounded-md bg-red-950/50 border border-red-500/50 text-red-200 text-[10px] font-medium text-center"></div>
             </div>
@@ -93,13 +92,10 @@
             </div>
         </section>
 
-        <!-- Right Column: Interactive Live Map (9/12) -->
-        <div class="col-span-9 h-full">
-            <div class="bg-slate-900 border border-slate-800 rounded-lg shadow-md h-full overflow-hidden flex flex-col">
-                <div id="map" class="flex-grow w-full z-10"></div>
-            </div>
+        <!-- Right Column: Interactive Live Map -->
+        <div class="flex-grow w-full md:w-9/12 h-[300px] md:h-full bg-slate-900 border border-slate-800 rounded-lg shadow-md overflow-hidden">
+            <div id="map" class="w-full h-full"></div>
         </div>
-    </div>
     </main>
 
     <!-- Footer -->
