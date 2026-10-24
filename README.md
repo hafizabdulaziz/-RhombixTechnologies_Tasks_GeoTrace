@@ -1,16 +1,16 @@
-# GeoTrace — Intelligent Geolocation Intelligence Platform
+# GeoTrace — Geolocation Intelligence Platform
 
-GeoTrace is a production-oriented Python application for **IP and domain geolocation intelligence**. It accepts a public IP address or domain, resolves and analyzes the target through a provider-based geolocation service, presents network and geographic information through a responsive web dashboard, visualizes the approximate location on an interactive map, and stores lookup history for later inspection.
-
-The project was initially developed for a **Python programming internship task** and was subsequently expanded into a more structured portfolio project with layered backend architecture, provider failover, validation, persistence, testing, containerization, CI/CD, database migrations, and structured request logging.
-
-> **Important:** IP geolocation provides an approximate network location. It is not GPS tracking and should not be interpreted as the exact physical location of a person, device, or building.
-
----
+An IP and domain geolocation intelligence platform built with Python, FastAPI, and SQLAlchemy.
 
 ## Overview
 
-GeoTrace follows a layered lookup workflow:
+GeoTrace resolves, analyzes, and visualizes network and geographic intelligence for public IP addresses and domain hostnames. The platform validates targets, queries upstream geolocation providers with automatic failover, renders results on an interactive map, and persists lookup history for subsequent inspection.
+
+Initially engineered for a Python programming internship task, the project was structured with a layered backend architecture incorporating provider resilience, data validation, database migrations, containerization, CI/CD automation, and structured logging.
+
+> **Note on Geolocation Accuracy**: IP geolocation establishes approximate network-routing locations based on ISP allocations. It does not provide real-time GPS coordinates and should not be treated as a physical device or person tracker.
+
+## Lookup Workflow
 
 ```text
 IP Address / Domain
@@ -18,10 +18,10 @@ IP Address / Domain
         ▼
 Input Classification & Validation
         │
-        ├── Invalid / Private / Local Target
+        ├── Invalid / Private / Local Loopback Target
         │
         ▼
-Domain Resolution (when required)
+Domain Resolution (DNS)
         │
         ▼
 Geolocation Provider
@@ -40,155 +40,128 @@ Normalized Geolocation Result
         └───────────────┴───────────────┘
                         │
                         ▼
-                 User-Facing Result
+                 User Presentation
 ```
-
-The application keeps the presentation layer lightweight while moving validation, provider communication, normalization, persistence, and business logic into dedicated backend components.
 
 ## Key Features
 
-### IP Geolocation Lookup
-GeoTrace accepts public IPv4 and IPv6 addresses and retrieves available geographic and network intelligence from the configured geolocation provider.
+- **IP Geolocation**: Accepts public IPv4 and IPv6 addresses to query geographical coordinates, ASN details, and ISP network metadata.
+- **Domain Resolution**: Resolves hostnames to IP addresses prior to provider lookup.
+- **Provider Failover Architecture**: Resilient client layer that handles provider timeouts and API failures by failing over to secondary providers when configured.
+- **Target Validation**: Distinguishes valid routable public IP targets from local, private, and loopback CIDR blocks.
+- **Interactive Mapping**: Visualizes resolved geographic coordinates dynamically using Leaflet.js.
+- **Historical Persistence**: Stores query audit trails in SQLite (local development) or PostgreSQL (hosted environments).
+- **Structured Error Handling**: Returns standardized API error responses during external provider downtime or network anomalies.
+- **Request Observability**: Incorporates structured application logging to trace request execution and external client interactions.
 
-### Domain Lookup
-GeoTrace can accept domains/hostnames and resolve them before performing geolocation.
+## Architecture & Project Structure
 
-### Multi-Provider / Failover Architecture
-The provider layer handles provider timeouts, connection failures, and API errors to ensure lookup reliability. This allows the service layer to attempt alternative providers when configured and prevents individual provider failures from unnecessarily breaking the complete lookup workflow.
-
-### Input Validation
-Distinguishes between valid public targets and local/private loopback addresses.
-
-### Interactive Mapping
-Visualize results on an interactive map using **Leaflet.js**.
-
-### Lookup History
-Successful lookups are persisted in SQLite (Development) or PostgreSQL (Production).
-
-### Structured Error Handling
-The API uses structured error handling to provide controlled responses when provider services or internal components fail.
-
-### Request / Application Logging
-The backend includes structured logging to make request processing and service-level failures easier to diagnose.
-
-## Architecture
-
-GeoTrace follows a layered backend structure:
+### Layered Architecture
 
 ```text
-Frontend
+Frontend (HTML5 / Tailwind CSS / Leaflet.js)
    │
    ▼
-FastAPI API Layer
+FastAPI API Routing Layer
    │
    ▼
-Service / Business Logic
-   │
-   ├── Input Validation
+Service & Business Logic Layer
+   ├── Input Validation & Target Filtering
    ├── Domain Resolution
-   ├── Provider Selection
-   ├── Failover Handling
-   └── Result Normalization
+   ├── Provider Strategy & Failover Logic
+   └── Response Normalization
    │
    ▼
-Provider Layer
+Provider Integration Layer
    │
    ▼
 External Geolocation APIs
+```
 
-API Layer
-   │
-   ▼
-SQLAlchemy ORM
-   │
-   ├── SQLite (Local Development)
-   └── PostgreSQL / Neon (Production)
+### Directory Structure
+
+```text
+GeoEngine_Repo/
+├── api/
+│   └── index.py            # Entry point for serverless hosting
+├── alembic/
+│   ├── versions/           # Database migration revisions
+│   └── env.py              # Migration configuration
+├── src/
+│   ├── api/                # FastAPI routes and request handling
+│   ├── core/               # Configuration settings and logging
+│   ├── database/           # SQLAlchemy engine, session, and ORM models
+│   ├── providers/          # External geolocation API client wrappers
+│   └── services/           # Domain business logic and failover routines
+├── tests/                  # Automated Pytest suite
+├── .github/
+│   └── workflows/
+│       └── ci.yml          # GitHub Actions CI workflow
+├── requirements.txt        # Python dependency manifest
+├── alembic.ini             # Alembic configuration
+├── vercel.json             # Vercel deployment specification
+└── Dockerfile              # Container definition
 ```
 
 ## Technology Stack
 
-| Layer               | Technology        |
-| ------------------- | ----------------- |
-| Language            | Python            |
-| API Framework       | FastAPI           |
-| ORM                 | SQLAlchemy        |
-| Database            | SQLite / PostgreSQL (Neon) |
-| Migrations          | Alembic           |
-| Frontend            | HTML5             |
-| Styling             | Tailwind CSS      |
-| Mapping             | Leaflet.js        |
-| Testing             | Pytest            |
-| Containerization    | Docker            |
-| CI/CD               | GitHub Actions    |
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Language** | Python | Core application language |
+| **Framework** | FastAPI | High-performance asynchronous API framework |
+| **Database & ORM** | SQLAlchemy | Relational persistence with SQLite and PostgreSQL (Neon) |
+| **Migrations** | Alembic | Database schema versioning and migration engine |
+| **Frontend** | HTML5, Tailwind CSS | Responsive dashboard presentation |
+| **Mapping** | Leaflet.js | Interactive geographic map visualization |
+| **Testing** | Pytest | Automated unit and integration testing |
+| **Containerization** | Docker | Container packaging specification |
+| **CI / CD** | GitHub Actions | Automated build, test, and linting pipeline |
 
-## Project Structure
-
-```text
-GeoEngine_Repo/
-│
-├── api/
-│   └── index.py
-│
-├── alembic/
-│   ├── versions/
-│   └── env.py
-│
-├── src/
-│   ├── api/
-│   ├── core/
-│   ├── database/
-│   ├── providers/
-│   └── services/
-│
-├── tests/
-│
-├── .github/
-│   └── workflows/
-│       └── ci.yml
-│
-├── requirements.txt
-├── alembic.ini
-├── vercel.json
-├── Dockerfile
-└── README.md
-```
-
-## API
+## API Reference
 
 ### `POST /api/v1/lookup`
-Performs a geolocation lookup for an IP address or domain.
+Performs geolocation analysis for a provided IP address or domain name.
 
 ### `GET /api/v1/history`
-Returns stored lookup history.
+Retrieves a paginated list of previous lookup records.
 
 ### `DELETE /api/v1/history/delete/{id}`
-Deletes a specific historical lookup record.
+Removes an individual lookup record by identifier.
 
 ### `GET /api/v1/health`
-Provides a lightweight health/status endpoint.
+Returns system uptime and health verification status.
 
----
+## Setup & Local Execution
 
-## Local Development
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/hafizabdulaziz/-RhombixTechnologies_Tasks_GeoTrace.git
+   cd -RhombixTechnologies_Tasks_GeoTrace
+   ```
 
-1. **Clone the repository:**
-   `git clone https://github.com/hafizabdulaziz/-RhombixTechnologies_Tasks_GeoTrace.git`
-2. **Create virtual environment:** `python -m venv .venv`
-3. **Activate:** `.\.venv\Scripts\activate` (Windows)
-4. **Install dependencies:** `pip install -r requirements.txt`
-5. **Start server:** `python -m uvicorn src.api.main:app --reload`
+2. **Configure Virtual Environment**:
+   ```bash
+   python -m venv .venv
 
----
+   # Windows
+   .venv\Scripts\activate
 
-## Production Deployment
+   # Linux / macOS
+   source .venv/bin/activate
+   ```
 
-GeoTrace is configured for deployment on Vercel with Neon PostgreSQL.
+3. **Install Dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-1. **Database:** Ensure `DATABASE_URL` is configured in Vercel Environment Variables.
-2. **Migrations:** Managed via Alembic; handled automatically by CI/CD pipeline on `main` branch.
-3. **CI/CD:** GitHub Actions ensures tests pass before migrations are applied.
+4. **Launch Application**:
+   ```bash
+   python -m uvicorn src.api.main:app --reload
+   ```
 
----
+## Deployment Configuration
 
-## License
-Add an explicit open-source license here only if one has actually been selected for this repository.
+GeoTrace supports serverless deployment on Vercel paired with Neon PostgreSQL:
+- **Environment**: Ensure `DATABASE_URL` is set in the deployment environment settings.
+- **Database Migrations**: Managed via Alembic, applied automatically in CI/CD pipelines following test suite validation.
